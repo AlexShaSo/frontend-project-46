@@ -2,4 +2,7 @@ install:
 	npm ci
 
 lint: 
-	npm test
+	npx eslint .
+
+gendiff:
+	node bin/gendiff.js
