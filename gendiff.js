@@ -1,4 +1,5 @@
-const { Command } = require('commander');
+import { Command } from 'commander';
+const fs = require('fs');
 
 const program = new Command();
 
@@ -7,9 +8,10 @@ program
   .description('Compares two configuration files and shows a difference.')
   .version('1.0.0', '-V, --version', 'output the version number')
   .option('-f, --format <type>', 'output format')
-  .argument('<filepath1>')
-  .argument('<filepath2>')
-
+  .arguments('<filePath1> <filePath2>')
+  .action((filePath1, filePath2) => {
+    console.log(gendiff(filePath1, filePath2));
+  })
 program.helpOption('-h', '--help', 'helping');
 
 program.parse();
