@@ -1,34 +1,75 @@
 import _ from 'lodash';
-import { readFileSync } from 'node:fs';
+import fs from 'fs';
 import path from 'path';
-import { cwd } from 'node:process';
+import process from 'process';
+import parse from './parse.js';
 
-const genDiff = (firstPath, secondPath) => {
-  const filepath1 = path.resolve(`${cwd()}`, `${firstPath}`);
-  const filepath2 = path.resolve(`${cwd()}`, `${secondPath}`);
-  const file1 = JSON.parse(readFileSync(filepath1, 'utf-8'));
-  const file2 = JSON.parse(readFileSync(filepath2, 'utf-8'));
-  const file1keys = Object.keys(file1);
-  const file2keys = Object.keys(file2);
-  const allKeys = _.sortBy(_.union(file2keys, file1keys));
-  const difference = (acc, key) => {
-    if (_.has(file1, key) && _.has(file2, key)) {
-      if (file1[key] === file2[key]) {
-        acc.push(`  ${key}: ${file1[key]}`);
-      } else {
-        acc.push(`- ${key}: ${file1[key]}`);
-        acc.push(`+ ${key}: ${file2[key]}`);
-      }
-    } else if (_.has(file1, key) && !_.has(file2, key)) {
-      acc.push(`- ${key}: ${file1[key]}`);
-    } else {
-      acc.push(`+ ${key}: ${file2[key]}`);
+const getAbsolutePath = (file) => path.resolve(process.cwd(), file);
+
+const getExtName = (file) => path.extname(file);
+
+const readData = (file) => fs.readFileSync(file, 'utf-8');
+
+const getDiffren = (data1, data2) => {
+  const objKey1 = Object.keys(data1);
+  const objKey2 = Object.keys(data2);
+  const unionKeys = _.sortBy(_.union(objKey1, objKey2));
+  const differenceTree = unionKeys.map((key) => {
+    if (!_.has(data1, key)) {
+      return { name: key, value: data2[key], type: 'added' };
     }
-    return acc;
-  };
-  const diffs = allKeys.reduce(difference, []);
+    if (!_.has(data2, key)) {
+      return { name: key, value: data1[key], type: 'deleted' };
+    }
+    if (_.has(data1, key) && _.has(data2, key) && data1[key] === data2[key]) {
+      return { name: key, value: data1[key], type: 'unchanged' };
+    }
+    if (_.has(data1, key) && _.has(data2, key) && data1[key] !== data2[key]) {
+      // eslint-disable-next-line object-curly-newline
+      return { name: key, value1: data1[key], value2: data2[key], type: 'changed' };
+    }
+    return key;
+  });
+  return differenceTree;
+};
 
-  return `{\n ${diffs.join('\n ')}\n}`;
+const split = '  ';
+
+const formatting = (differenceTree) => {
+  const buildString = differenceTree.map((diff) => {
+    switch (diff.type) {
+      case 'deleted':
+        return `${split}- ${diff.name}: ${diff.value}`;
+      case 'unchanged':
+        return `${split}  ${diff.name}: ${diff.value}`;
+      case 'changed':
+        return `${split}- ${diff.name}: ${diff.value1}\n${split}+ ${diff.name}: ${diff.value2}`;
+      case 'added':
+        return `${split}+ ${diff.name}: ${diff.value}`;
+      default:
+        return `Unknown type: ${diff.type}`;
+    }
+  });
+  return `{\n${buildString.join('\n')}\n}`;
+};
+
+const genDiff = (file1, file2) => {
+  const absolutePath1 = getAbsolutePath(file1);
+  const absolutePath2 = getAbsolutePath(file2);
+
+  const data1 = readData(absolutePath1, 'utf-8');
+  const data2 = readData(absolutePath2, 'utf-8');
+
+  const extname1 = getExtName(file1);
+  const extname2 = getExtName(file2);
+
+  const data1Parse = parse(data1, extname1);
+  const data2Parse = parse(data2, extname2);
+
+  const diffrens = getDiffren(data1Parse, data2Parse);
+  const result = formatting(diffrens);
+
+  return result;
 };
 
 export default genDiff;
