@@ -1,23 +1,18 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { cwd } from 'process';
+import fs from 'fs';
+import path from 'path';
+import process from 'process';
 import parseFile from './parsers.js';
 import buildDiff from './buildDiff.js';
 import formatter from './formatters/index.js';
 
-const readfile = (filepath) => {
-  const currentDir = cwd();
-  const absolutePath = resolve(currentDir, filepath);
-  const content = readFileSync(absolutePath, 'utf-8');
-  return content;
-};
+const buildFullPath = (filepath) => path.resolve(process.cwd(), filepath);
+const extractFormat = (filepath) => path.extname(filepath).slice(1);
+const getData = (filepath) => parseFile(fs.readFileSync(filepath, 'utf-8'), extractFormat(filepath));
 
-const getExtension = (file) => file.split('.')[1];
-
-const genDiff = (filepath1, filepath2, format = 'stylish') => {
-  const file1 = parseFile(getExtension(filepath1), readfile(filepath1));
-  const file2 = parseFile(getExtension(filepath2), readfile(filepath2));
-  const diffTree = buildDiff(file1, file2);
+const genDiff = (path1, path2, format = 'stylish') => {
+  const data1 = getData(buildFullPath(path1));
+  const data2 = getData(buildFullPath(path2));
+  const diffTree = buildDiff(data1, data2);
   return formatter(diffTree, format);
 };
 
