@@ -1,5 +1,8 @@
 name: linter
 
+env:
+  CI: true
+
 on: [push]
 
 jobs:
@@ -13,10 +16,9 @@ jobs:
       run: make install
     - name: use eslint
       run: make lint
-    - name: Test & publish code coverage
-      uses: paambaati/codeclimate-action@v3.0.0
-      env:
+    - name: use test
+      run: make test
+    - name: use test coverage
+      run: make test-coverage
+      env: 
         CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-      with:
-        coverageCommand: make test-coverage
-        debug: true

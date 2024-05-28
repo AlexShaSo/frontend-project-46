@@ -1,20 +1,41 @@
-import path from 'node:path';
-import fs from 'node:fs';
+import { describe, test } from '@jest/globals';
 import genDiff from '../src/index.js';
+import resultStylish from '../__fixtures__/stylish.js';
+import resultPlain from '../__fixtures__/resultPlain.js';
+import resultJSON from '../__fixtures__/JSON.js';
 
-const dirname = process.cwd();
-const getFixturePath = (filename) => path.join(dirname, '__fixtures__', filename);
+describe('stylish', () => {
+  test('json', () => {
+    expect(genDiff('./__fixtures__/file1.json', './__fixtures__/file2.json')).toBe(resultStylish);
+  });
+  test('yaml', () => {
+    expect(genDiff('./__fixtures__/file1.yaml', './__fixtures__/file2.yaml')).toBe(resultStylish);
+  });
+  test('yml', () => {
+    expect(genDiff('./__fixtures__/file1.yml', './__fixtures__/file2.yml')).toBe(resultStylish);
+  });
+});
 
-describe.each([['stylish'], ['plain'], ['json']])('%s formatter', (formatter) => {
-  const filepathOfExpected = getFixturePath(`${formatter}.txt`);
-  const expected = fs.readFileSync(filepathOfExpected, 'utf-8');
+describe('plain', () => {
+  test('json', () => {
+    expect(genDiff('./__fixtures__/file1.json', './__fixtures__/file2.json')).toBe(resultPlain);
+  });
+  test('yaml', () => {
+    expect(genDiff('./__fixtures__/file1.yaml', './__fixtures__/file2.yaml')).toBe(resultPlain);
+  });
+  test('yml', () => {
+    expect(genDiff('./__fixtures__/file1.yml', './__fixtures__/file2.yml')).toBe(resultPlain);
+  });
+});
 
-  test.each([['json'], ['yml']])('%s files', (extension) => {
-    const filepath1 = getFixturePath(`file1.${extension}`);
-    const filepath2 = getFixturePath(`file2.${extension}`);
-
-    const result = genDiff(filepath1, filepath2, formatter);
-
-    expect(result).toBe(expected);
+describe('JSON', () => {
+  test('json', () => {
+    expect(genDiff('./__fixtures__/file1.json', './__fixtures__/file2.json')).toBe(resultJSON);
+  });
+  test('yaml', () => {
+    expect(genDiff('./__fixtures__/file1.yaml', './__fixtures__/file2.yaml')).toBe(resultJSON);
+  });
+  test('yml', () => {
+    expect(genDiff('./__fixtures__/file1.yml', './__fixtures__/file2.yml')).toBe(resultJSON);
   });
 });
