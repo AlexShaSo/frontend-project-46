@@ -40,6 +40,4 @@ jobs:
         env:
             CODECLIMATE_REPO_TOKEN: ${{ secrets.CODECLIMATE_REPO_TOKEN }},
             CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
-        run: |
-            node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage
-            ./node_modules/.bin/codeclimate-test-reporter < coverage/lcov.info
+        run: npm test -- --coverage --coverageProvider=v8
