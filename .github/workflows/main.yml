@@ -36,8 +36,10 @@ jobs:
       - run: make install
       - run: make lint
       - run: make test
-      - name: Run tests and generate coverage
+      - name: Test & publish code coverage
+        uses: paambaati/codeclimate-action@v5.0.0
         env:
-            CODECLIMATE_REPO_TOKEN: ${{ secrets.CODECLIMATE_REPO_TOKEN }},
-            CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
-        run: npm test -- --coverage --coverageProvider=v8
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: npm test -- --coverage --coverageProvider=v8
+          debug: true
